@@ -7,9 +7,9 @@ import java.util.List;
 
 public class ShortestTimeStrategy implements Strategy {
     @Override
-    public void addTask(List<Server> servers, Task tasks) {
+    public int addTask(List<Server> servers, Task tasks) {
         if(servers == null || servers.isEmpty() || tasks == null) {
-            return;
+            return -1;
         }
 
         Server bestServer = servers.get(0);
@@ -23,5 +23,6 @@ public class ShortestTimeStrategy implements Strategy {
         }
 
         bestServer.addTask(tasks);
+        return bestTime;
     }
 }

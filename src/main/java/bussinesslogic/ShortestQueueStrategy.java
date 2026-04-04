@@ -7,9 +7,9 @@ import java.util.List;
 
 public class ShortestQueueStrategy implements Strategy {
     @Override
-    public void addTask(List<Server> servers, Task task) {
+    public int addTask(List<Server> servers, Task task) {
         if(servers == null || servers.isEmpty() || task == null) {
-            return;
+            return -1;
         }
 
         Server bestServer = servers.get(0);
@@ -21,6 +21,10 @@ public class ShortestQueueStrategy implements Strategy {
                 minTasks = srv.getTasks().size();
             }
         }
+
+        int waitingTimeBeforeAdding = bestServer.getWaitingPeriod();
         bestServer.addTask(task);
+
+        return waitingTimeBeforeAdding;
     }
 }

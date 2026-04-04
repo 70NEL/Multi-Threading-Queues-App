@@ -42,7 +42,7 @@ public class SimulationManager implements Runnable {
     private void generateNRandomTasks() {
         this.generatedTasks = new ArrayList<>();
         Random rand = new Random();
-        for (int i = 0; i < numberOfClients; i++) {
+        for (int i = 1; i <= numberOfClients; i++) {
             int arrival = rand.nextInt(maxArrivalTime - minArrivalTime) + minArrivalTime;
             int serviceTime = rand.nextInt(maxProcessingTime -  minProcessingTime) + minProcessingTime;
             generatedTasks.add(new Task(i, arrival, serviceTime));
@@ -65,8 +65,7 @@ public class SimulationManager implements Runnable {
                 while(iterator.hasNext()) {
                     Task tsk = iterator.next();
                     if(currentTime == tsk.getArrivalTime()) {
-                        totalWaitingTime += scheduler.getMinWaitingTime();
-                        scheduler.dispatchTask(tsk);
+                        totalWaitingTime += scheduler.dispatchTask(tsk);
                         iterator.remove();
                     }
                 }

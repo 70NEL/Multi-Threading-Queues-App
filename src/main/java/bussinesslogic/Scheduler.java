@@ -10,6 +10,7 @@ public class Scheduler {
     private int maxNoServers;
     private int maxTasksPerServer;
     private Strategy strategy;
+    private List<Thread> serverThreads;
 
     public Scheduler(int maxNoServers, int maxTasksPerServer) {
         this.maxNoServers = maxNoServers;
@@ -17,9 +18,17 @@ public class Scheduler {
         this.servers = new ArrayList<>();
 
         for (int i = 0; i < maxNoServers; i++) {
-            servers.add(new Server());
-            Thread thread = new Thread(servers.get(i));
-            thread.start();
+            Server srv = new  Server();
+            servers.add(srv);
+            Thread t = new Thread(srv);
+            serverThreads.add(t);
+            t.start();
+        }
+    }
+
+    public void stopServers() {
+        for (Thread t : serverThreads) {
+            t.interrupt();
         }
     }
 
@@ -31,18 +40,8 @@ public class Scheduler {
         }
     }
 
-    public int getMinWaitingTime() {
-        int min = Integer.MAX_VALUE;
-        for (Server s : servers) {
-            if (s.getWaitingPeriod() < min) {
-                min = s.getWaitingPeriod();
-            }
-        }
-        return min;
-    }
-
-    public void dispatchTask(Task task) {
-        strategy.addTask(servers, task);
+    public int dispatchTask(Task task) {
+        return strategy.addTask(servers, task);
     }
 
     public List<Server> getServers() {
