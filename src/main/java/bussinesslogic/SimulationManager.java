@@ -65,7 +65,8 @@ public class SimulationManager implements Runnable {
                 while(iterator.hasNext()) {
                     Task tsk = iterator.next();
                     if(currentTime == tsk.getArrivalTime()) {
-                        totalWaitingTime += scheduler.dispatchTask(tsk);
+                        int temp = scheduler.dispatchTask(tsk);
+                        totalWaitingTime = temp == -1 ? totalWaitingTime : totalWaitingTime + temp;
                         iterator.remove();
                     }
                 }
