@@ -5,6 +5,12 @@ public class Task {
     private int arrivalTime;
     private int serviceTime;
 
+    public Task(int id, int arrivalTime, int serviceTime) {
+        this.id = id;
+        this.arrivalTime = arrivalTime;
+        this.serviceTime = serviceTime;
+    }
+
     public int getServiceTime() {
         return serviceTime;
     }
@@ -27,5 +33,10 @@ public class Task {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + id + "," + arrivalTime + "," + serviceTime + ")";
     }
 }
