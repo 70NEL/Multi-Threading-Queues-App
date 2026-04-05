@@ -4,11 +4,20 @@ public class Task {
     private int id;
     private int arrivalTime;
     private int serviceTime;
+    private int waitingTimeInQueue;
 
     public Task(int id, int arrivalTime, int serviceTime) {
         this.id = id;
         this.arrivalTime = arrivalTime;
         this.serviceTime = serviceTime;
+    }
+
+    public void setWaitingTimeInQueue(int time) {
+        this.waitingTimeInQueue = time;
+    }
+
+    public int getWaitingTimeInQueue() {
+        return this.waitingTimeInQueue;
     }
 
     public int getServiceTime() {
