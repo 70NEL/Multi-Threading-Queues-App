@@ -99,13 +99,15 @@ public class SimulationManager implements Runnable {
                     //simulationFrame.updateView(scheduler.getServers(), currentTime);
                 }
 
-                currentTime++;
+
                 try{
                     Thread.sleep(1000);
                 }catch(InterruptedException e){
                     Thread.currentThread().interrupt();
                     break;
                 }
+
+                currentTime++;
             }
 
             int finalFinishedCnt = 0;
