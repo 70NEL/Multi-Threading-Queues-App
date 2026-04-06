@@ -16,6 +16,7 @@ public class Scheduler {
         this.maxNoServers = maxNoServers;
         this.maxTasksPerServer = maxTasksPerServer;
         this.servers = new ArrayList<>();
+        serverThreads = new ArrayList<>();
 
         for (int i = 0; i < maxNoServers; i++) {
             Server srv = new  Server();

@@ -3,6 +3,7 @@ package bussinesslogic;
 import gui.SimulationFrame;
 import model.*;
 
+import javax.swing.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,7 +23,8 @@ public class SimulationManager implements Runnable {
     private SimulationFrame simulationFrame;
     private List<Task> generatedTasks;
 
-    public SimulationManager(int numberOfClients, int numberOfQueues, int timeLimit, int maxProcessingTime, int minProcessingTime, int maxArrivalTime, int minArrivalTime, SelectionPolicy selectionPolicy) {
+    public SimulationManager(SimulationFrame simulationFrame, int numberOfClients, int numberOfQueues, int timeLimit, int maxProcessingTime, int minProcessingTime, int maxArrivalTime, int minArrivalTime, SelectionPolicy selectionPolicy) {
+        this.simulationFrame = simulationFrame;
         this.numberOfClients = numberOfClients;
         this.numberOfQueues = numberOfQueues;
         this.timeLimit = timeLimit;
@@ -34,9 +36,11 @@ public class SimulationManager implements Runnable {
 
         scheduler = new Scheduler(numberOfQueues, numberOfClients/numberOfQueues + 1);
         scheduler.changeStrategy(selectionPolicy);
-
-        this.simulationFrame = new SimulationFrame();
         generateNRandomTasks();
+    }
+
+    public SimulationManager() {
+
     }
 
     private void generateNRandomTasks() {
@@ -57,28 +61,35 @@ public class SimulationManager implements Runnable {
         float totalWaitingTime = 0;
         int peakHour = 0;
         int maxClientsAtOnce = 0;
-        PrintWriter writer = null;
 
-        try {
-            writer = new PrintWriter(new FileWriter("log.txt"));
-
-            while(currentTime <= timeLimit) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("log.txt"))) {
+            while (currentTime <= timeLimit) {
                 Iterator<Task> iterator = generatedTasks.iterator();
-                while(iterator.hasNext()) {
+                while (iterator.hasNext()) {
                     Task tsk = iterator.next();
-                    if(currentTime == tsk.getArrivalTime()) {
+                    if (currentTime == tsk.getArrivalTime()) {
                         int temp = scheduler.dispatchTask(tsk);
                         tsk.setWaitingTimeInQueue(temp);
                         iterator.remove();
                     }
                 }
 
+                final List<Server> currentServers = scheduler.getServers();
+                final List<Task> currentWaiting = new ArrayList<>(generatedTasks);
+                final int displayTime = currentTime;
+
+                SwingUtilities.invokeLater(() -> {
+                    if (simulationFrame != null && simulationFrame.getVisualPanel() != null) {
+                        simulationFrame.getVisualPanel().updateData(currentServers, currentWaiting, displayTime);
+                    }
+                });
+
                 int currentNrOfClients = 0;
-                for(Server server : scheduler.getServers()) {
-                    currentNrOfClients += server.getTasks().size() + 1;
+                for (Server server : currentServers) {
+                    currentNrOfClients += server.getTasks().size();
                 }
 
-                if(currentNrOfClients > maxClientsAtOnce) {
+                if (currentNrOfClients > maxClientsAtOnce) {
                     maxClientsAtOnce = currentNrOfClients;
                     peakHour = currentTime;
                 }
@@ -86,50 +97,32 @@ public class SimulationManager implements Runnable {
                 writer.println("Time: " + currentTime);
                 writer.println("Waiting Clients: " + generatedTasks.toString());
                 int svNr = 1;
-                for(Server sv : scheduler.getServers()) {
+                for (Server sv : currentServers) {
                     String queueStatus = sv.getTasks().isEmpty() ? "Closed" : sv.getTasks().toString();
                     writer.println("Queue " + svNr + " : " + queueStatus);
                     svNr++;
                 }
-
                 writer.println();
                 writer.flush();
 
-                if(simulationFrame != null) {
-                    //simulationFrame.updateView(scheduler.getServers(), currentTime);
-                }
-
-
-                try{
-                    Thread.sleep(1000);
-                }catch(InterruptedException e){
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-
+                Thread.sleep(1000);
                 currentTime++;
             }
 
             int finalFinishedCnt = 0;
-            for(Server server : scheduler.getServers()) {
+            for (Server server : scheduler.getServers()) {
                 totalWaitingTime += server.getTotalWaitTimeReal();
                 finalFinishedCnt += server.getTotalFinishedClients();
             }
 
-            float averageWaitingTime;
-            if(finalFinishedCnt == 0) {
-                averageWaitingTime = 0;
-            }else {
-                averageWaitingTime = totalWaitingTime / finalFinishedCnt;
-            }
+            float averageWaitingTime = (finalFinishedCnt == 0) ? 0 : totalWaitingTime / finalFinishedCnt;
             writer.println("Average Waiting Time: " + averageWaitingTime);
             writer.println("Peak Hour: " + peakHour + ", Max Clients: " + maxClientsAtOnce);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }finally {
-            if(writer != null) {
-                writer.close();
-            }
+            writer.flush();
+
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
             scheduler.stopServers();
         }
     }

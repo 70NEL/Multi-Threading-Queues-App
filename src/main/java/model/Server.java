@@ -5,10 +5,10 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server implements Runnable {
-    BlockingQueue<Task> tasks;
-    AtomicInteger waitingPeriod;
-    AtomicInteger totalFinishedClients;
-    AtomicInteger totalWaitTimeReal;
+    private BlockingQueue<Task> tasks;
+    private AtomicInteger waitingPeriod;
+    private AtomicInteger totalFinishedClients;
+    private AtomicInteger totalWaitTimeReal;
 
     public Server() {
         this.tasks = new LinkedBlockingDeque<>();
@@ -24,19 +24,26 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
-                Task nextTask = tasks.take();
+                Task nextTask = tasks.peek();
 
-                for(int i = 0; i < nextTask.getServiceTime(); i++) {
-                    Thread.sleep(1000);
-                    waitingPeriod.decrementAndGet();
+                if (nextTask != null) {
+                    int duration = nextTask.getServiceTime();
+
+                    for (int i = 0; i < duration; i++) {
+                        Thread.sleep(1000);
+                        nextTask.setServiceTime(nextTask.getServiceTime() - 1);
+                        waitingPeriod.decrementAndGet();
+                    }
+
+                    totalWaitTimeReal.addAndGet(nextTask.getWaitingTimeInQueue());
+                    totalFinishedClients.incrementAndGet();
+
+                    tasks.poll();
+                } else {
+                    Thread.sleep(100);
                 }
-
-                totalWaitTimeReal.addAndGet(nextTask.getWaitingTimeInQueue());
-                totalFinishedClients.incrementAndGet();
-                nextTask = null;
-
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
