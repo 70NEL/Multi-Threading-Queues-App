@@ -18,6 +18,10 @@ public class SimulationManager implements Runnable {
     public int maxArrivalTime;
     public int minArrivalTime;
     public SelectionPolicy selectionPolicy;
+    public float averageWaitingTime;
+    public int peakHour;
+    public int maxClientsAtOnce;
+    public int currentTime = 0;
 
     private Scheduler scheduler;
     private SimulationFrame simulationFrame;
@@ -57,10 +61,9 @@ public class SimulationManager implements Runnable {
 
     @Override
     public void run() {
-        int currentTime = 0;
         float totalWaitingTime = 0;
-        int peakHour = 0;
-        int maxClientsAtOnce = 0;
+        peakHour = 0;
+        maxClientsAtOnce = 0;
 
         try (PrintWriter writer = new PrintWriter(new FileWriter("log.txt"))) {
             while (currentTime <= timeLimit) {
@@ -115,10 +118,12 @@ public class SimulationManager implements Runnable {
                 finalFinishedCnt += server.getTotalFinishedClients();
             }
 
-            float averageWaitingTime = (finalFinishedCnt == 0) ? 0 : totalWaitingTime / finalFinishedCnt;
+            averageWaitingTime = (finalFinishedCnt == 0) ? 0 : totalWaitingTime / finalFinishedCnt;
             writer.println("Average Waiting Time: " + averageWaitingTime);
             writer.println("Peak Hour: " + peakHour + ", Max Clients: " + maxClientsAtOnce);
             writer.flush();
+
+            simulationFrame.onSimulationFinished(averageWaitingTime, peakHour, maxClientsAtOnce);
 
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();

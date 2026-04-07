@@ -4,33 +4,31 @@ import model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Scheduler {
     private List<Server> servers;
     private int maxNoServers;
     private int maxTasksPerServer;
     private Strategy strategy;
-    private List<Thread> serverThreads;
+    private ExecutorService pool;
 
     public Scheduler(int maxNoServers, int maxTasksPerServer) {
         this.maxNoServers = maxNoServers;
         this.maxTasksPerServer = maxTasksPerServer;
         this.servers = new ArrayList<>();
-        serverThreads = new ArrayList<>();
+        pool = Executors.newFixedThreadPool(maxNoServers);
 
         for (int i = 0; i < maxNoServers; i++) {
             Server srv = new  Server();
             servers.add(srv);
-            Thread t = new Thread(srv);
-            serverThreads.add(t);
-            t.start();
+            pool.execute(srv);
         }
     }
 
     public void stopServers() {
-        for (Thread t : serverThreads) {
-            t.interrupt();
-        }
+        pool.shutdown();
     }
 
     public void changeStrategy(SelectionPolicy selectionPolicy) {
