@@ -31,7 +31,7 @@ public class SimulationPanel extends JPanel {
 
         g2d.setFont(new Font("Arial", Font.BOLD, 14));
         g2d.setColor(Color.BLACK);
-        g2d.drawString("WAITING LOUNGE:", 50, 30);
+        g2d.drawString("WAITING QUEUE:", 50, 30);
 
         int wx = 50, wy = 45;
         if (waitingTasks != null) {
@@ -85,7 +85,7 @@ public class SimulationPanel extends JPanel {
         g2d.drawString("ID: " + t.getId(), x + 5, y + 12);
 
         g2d.setFont(new Font("Arial", Font.PLAIN, 10));
-        g2d.drawString("Arr: " + t.getArrivalTime(), x + 5, y + 24);
+        g2d.drawString("ARR: " + t.getArrivalTime(), x + 5, y + 24);
 
         g2d.setFont(new Font("Arial", Font.BOLD, 11));
         g2d.setColor(new Color(200, 0, 0));

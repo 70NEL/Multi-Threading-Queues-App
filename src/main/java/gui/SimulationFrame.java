@@ -4,6 +4,8 @@ import bussinesslogic.SelectionPolicy;
 import bussinesslogic.SimulationManager;
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SimulationFrame extends JFrame {
     private CardLayout cardLayout = new CardLayout();
@@ -17,7 +19,7 @@ public class SimulationFrame extends JFrame {
     private JTextField tfMaxArrivalTime = new JTextField(6);
     private JTextField tfMinArrivalTime = new JTextField(6);
     private JComboBox<String> combo = new JComboBox<>(new String[]{"SHORTEST_QUEUE", "SHORTEST_TIME"});
-
+    private ExecutorService managerExecutor = Executors.newSingleThreadExecutor();
     private SimulationPanel visualPanel = new SimulationPanel();
 
     public SimulationFrame() {
@@ -127,7 +129,7 @@ public class SimulationFrame extends JFrame {
                 SelectionPolicy.SHORTEST_QUEUE : SelectionPolicy.SHORTEST_TIME;
 
         SimulationManager manager = new SimulationManager(this, clients, queues, time, maxP, minP, maxA, minA, policy);
-        new Thread(manager).start();
+        managerExecutor.execute(manager);
     }
 
     public SimulationPanel getVisualPanel() {
